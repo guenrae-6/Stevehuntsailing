@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Advanced Sailing: Performance & Large Fleet Tactics Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b1b2a; --panel:#10283e; --accent:#31c48d; --accent2:#60a5fa;
+      --text:#e6f0f7; --muted:#a6c0d0; --danger:#f87171; --ok:#34d399; --warn:#fbbf24;
+    }
+    body{
+      margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:linear-gradient(140deg,#07111b,#0c2236 45%,#0a2e4a);
+      color:var(--text);
+    }
+    .wrap{
+      max-width:920px; margin:32px auto; padding:0 16px;
+    }
+    header{
+      background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:14px; padding:20px 20px 14px; margin-bottom:20px;
+    }
+    h1{ margin:0 0 6px; font-size:1.6rem; letter-spacing:.3px; }
+    p.lead{ margin:6px 0 0; color:var(--muted) }
+    .controls{
+      display:flex; gap:12px; flex-wrap:wrap; margin-top:14px;
+    }
+    button,.btn{
+      background:linear-gradient(180deg,rgba(49,196,141,.18),rgba(49,196,141,.08));
+      color:var(--text); border:1px solid rgba(49,196,141,.45);
+      border-radius:10px; padding:10px 14px; cursor:pointer;
+      transition:.15s transform ease,.15s background ease,.15s border-color ease;
+    }
+    button.secondary{
+      background:linear-gradient(180deg,rgba(96,165,250,.18),rgba(96,165,250,.08));
+      border-color:rgba(96,165,250,.5);
+    }
+    button.warn{
+      background:linear-gradient(180deg,rgba(251,191,36,.18),rgba(251,191,36,.08));
+      border-color:rgba(251,191,36,.55);
+    }
+    button:hover{ transform:translateY(-1px); }
+    button:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:14px; padding:18px; margin:14px 0;
+    }
+    .q-head{
+      display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    }
+    .q-title{ font-size:1.05rem; font-weight:600; }
+    .badge{
+      font-size:.78rem; padding:2px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.15); color:var(--muted);
+    }
+    .topic{
+      font-size:.78rem; color:#a2d9ff; margin-top:6px;
+    }
+    .options{
+      list-style:none; margin:14px 0 0; padding:0; display:grid; gap:10px;
+    }
+    .opt{
+      background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px; padding:12px; cursor:pointer;
+      display:flex; gap:10px; align-items:flex-start;
+      transition:.15s ease; position:relative;
+    }
+    .opt:hover{ background:rgba(255,255,255,.04); }
+    .opt input{ margin-top:3px; }
+    .opt.correct{ border-color:rgba(52,211,153,.75); background:linear-gradient(180deg,rgba(52,211,153,.18),rgba(52,211,153,.05)); }
+    .opt.incorrect{ border-color:rgba(248,113,113,.75); background:linear-gradient(180deg,rgba(248,113,113,.18),rgba(248,113,113,.05)); }
+    .opt.disabled{ opacity:.85; pointer-events:none; }
+    .explain{
+      margin-top:10px; padding:10px 12px; border-radius:10px;
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+      color:var(--muted); display:none;
+    }
+    .explain.show{ display:block; }
+    .footer{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:12px;
+    }
+    .score{
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1);
+      padding:8px 12px; border-radius:10px; color:var(--muted);
+      display:flex; gap:10px; align-items:center;
+    }
+    .pill{
+      padding:2px 8px; border-radius:999px; font-size:.8rem; border:1px solid rgba(255,255,255,.15);
+    }
+    .pill.ok{ border-color:rgba(52,211,153,.6); color:#b7f5dc; }
+    .pill.bad{ border-color:rgba(248,113,113,.6); color:#ffd1d1; }
+    .pill.info{ border-color:rgba(96,165,250,.6); color:#cfe7ff; }
+    .divider{ height:1px; background:rgba(255,255,255,.08); margin:14px 0; }
+    .nav{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .nav .idx{
+      width:34px; height:34px; display:grid; place-items:center;
+      border-radius:8px; border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03); color:var(--muted); cursor:pointer;
+    }
+    .nav .idx.active{ border-color:var(--accent2); color:#e9f3ff; }
+    .nav .idx.correct{ border-color:rgba(52,211,153,.8); color:#d9ffee; }
+    .nav .idx.incorrect{ border-color:rgba(248,113,113,.8); color:#ffe3e3; }
+    .small{ font-size:.85rem; color:var(--muted); }
+    .hidden{ display:none !important; }
+    .rationale-list{ margin:8px 0 0; padding-left:16px; }
+    .rationale-list li{ margin:4px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Advanced Sailing: Performance & Large Fleet Tactics</h1>
+      <p class="lead">Interactive multiple-choice quiz with rationales. Focus: boat speed, rig tuning, course geometry, and big-fleet tactics.</p>
+      <div class="controls">
+        <button id="btnStart">Start Quiz</button>
+        <button id="btnReset" class="secondary" disabled>Reset</button>
+        <button id="btnReview" class="warn" disabled>Toggle Review Mode</button>
+      </div>
+    </header>
+    <div class="card">
+      <div class="q-head">
+        <div class="q-title" id="qTitle">Question</div>
+        <div class="badge" id="qMeta">1 / 10</div>
+      </div>
+      <div class="topic" id="qTopic">Topic</div>
+      <ul class="options" id="options"></ul>
+      <div class="explain" id="explainBox"></div>
+      <div class="footer">
+        <div class="score">
+          <span class="pill info" id="modePill">Mode: Practice</span>
+          <span class="pill ok" id="scoreOk">Correct: 0</span>
+          <span class="pill bad" id="scoreBad">Incorrect: 0</span>
+        </div>
+        <div class="nav" id="nav"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="q-title">Session Summary</div>
+      <div class="small" id="summary">Start the quiz to see progress.</div>
+      <div class="divider"></div>
+      <div class="small">
+        Tips:
+        <ul class="rationale-list">
+          <li>In chop, add depth and twist; in flat water, flatter sails and tighter leeches.</li>
+          <li>Lead on the long tack; protect clear lanes in large fleets.</li>
+          <li>Use numbers: track compass lifts/headers to avoid “gut feel” traps.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <script>
+  // Quiz data: Each question features 4 options with per-option rationales.
+  const QUESTIONS = [
+    {
+      topic: "Rig Tuning • Backstay/Mainsheet Coupling",
+      stem: "You ease the backstay to add power after exiting a lull. What should you do with the mainsheet to keep the main/leech balanced?",
+      options: [
+        { txt: "Ease the mainsheet to match the added depth and maintain flow.", correct: true,
+          why: "Easing backstay reduces mast bend, deepening the main. Easing mainsheet preserves twist/leech tension so the sail can breathe and accelerate." },
+        { txt: "Trim the mainsheet harder to increase pointing immediately.", correct: false,
+          why: "Over-trimming after easing backstay over-tightens the leech, stalls flow, and kills acceleration." },
+        { txt: "Do nothing; mainsheet is independent of backstay changes.", correct: false,
+          why: "They’re strongly coupled. Backstay changes mast bend, requiring coordinated mainsheet to maintain designed twist." },
+        { txt: "Switch to vang-only control upwind to stabilize leech.", correct: false,
+          why: "Vang is secondary upwind in most configs; mainsheet/backstay set primary leech/twist balance." }
+      ]
+    },
+    {
+      topic: "Sail Shape • Sea State",
+      stem: "In choppy upwind conditions, which trim profile is generally fastest?",
+      options: [
+        { txt: "Fuller sails with more twist; sail a touch lower/faster.", correct: true,
+          why: "Chop induces frequent stalls. Extra depth and twist keep attached flow and allow re-acceleration after each wave." },
+        { txt: "Very flat sails with tight leeches; pinch for height.", correct: false,
+          why: "Flat/closed profiles stall easily in chop and make re-acceleration difficult." },
+        { txt: "Max depth low in the main with an over-tight leech.", correct: false,
+          why: "Depth helps, but an over-tight leech stalls; twist is required to spill puffs and keep flow." },
+        { txt: "Backstay fully tight with eased outhaul to balance.", correct: false,
+          why: "Tight backstay depowers/ flattens; opposite of what you want in persistent chop." }
+      ]
+    },
+    {
+      topic: "Foils & Heel • Keelboats vs Dinghies",
+      stem: "Why do keelboats typically sail upwind with a small, steady heel (about 8–22°) while dinghies aim to be flat?",
+      options: [
+        { txt: "Keelboats gain keel lift/righting moment without excessive drag; dinghies lack ballast so heel adds drag.", correct: true,
+          why: "Ballasted keels like some heel to ‘load’ the foil and track; dinghies pay a drag penalty when not flat." },
+        { txt: "Dinghies point higher when heeled due to mast rake.", correct: false,
+          why: "Heeling a dinghy generally degrades foil alignment and increases leeway and drag." },
+        { txt: "Keelboats can’t flatten because crews sit to leeward.", correct: false,
+          why: "Crew placement helps trim, but the heel choice is performance-driven, not inability to flatten." },
+        { txt: "Heeling reduces weather helm on dinghies significantly.", correct: false,
+          why: "Excess heel often increases weather helm on dinghies and harms VMG." }
+      ]
+    },
+    {
+      topic: "Starting • Line Bias & Geometry",
+      stem: "On a very long starting line, you find a 16° port-end bias. What’s the practical implication?",
+      options: [
+        { txt: "Winning the port (favored) end can yield a massive distance gain right off the line.", correct: true,
+          why: "Trigonometry of long lines: even moderate bias produces huge separation—hundreds of meters on half-mile lines." },
+        { txt: "Bias matters less on longer lines because fleets spread out.", correct: false,
+          why: "Longer lines amplify gains from bias; separation scales with length." },
+        { txt: "You should always start at the biased end, even if it’s a traffic jam.", correct: false,
+          why: "Front-row, full-speed starts in lower density can beat getting pinned in a congested biased pack." },
+        { txt: "Bias only affects the first minute; it’s irrelevant after that.", correct: false,
+          why: "Early leverage affects lane, mode, and the first cross—often shaping the whole beat." }
+      ]
+    },
+    {
+      topic: "Starting • Low-Risk Execution",
+      stem: "As a fast boat in a 130-boat fleet, which start philosophy usually pays best?",
+      options: [
+        { txt: "Prioritize a clean, low-density start at full speed, even if not at the extreme biased end.", correct: true,
+          why: "Speed + clear air beat being on the line but slow and pinned. Superior pace compounds gains." },
+        { txt: "Fight for the extreme biased end at all costs.", correct: false,
+          why: "High density risks being late/slow, getting rolled, or fouling—wiping out the bias gain." },
+        { txt: "Start second-row under a leader to ‘learn their settings’.", correct: false,
+          why: "Second-row air kills speed/height; you’ll be pinned with limited options." },
+        { txt: "Start mid-line and immediately tack twice to find a lane.", correct: false,
+          why: "Unnecessary early maneuvers cost distance; better to launch clean with a plan." }
+      ]
+    },
+    {
+      topic: "Upwind Strategy • Three Modes",
+      stem: "You’ve just slammed a wave and lost flow. Which steering/trim mode recovers fastest?",
+      options: [
+        { txt: "Mode 1: Pressing—sail a little lower, ‘fat’ telltales, build speed first.", correct: true,
+          why: "Recover boatspeed before height. Flow/acceleration revive pointing ability." },
+        { txt: "Mode 2: Normal—hold exact targets and wait for speed to return.", correct: false,
+          why: "Targets assume attached flow; after a stall, you need an active speed-build." },
+        { txt: "Mode 3: Pinching—feather up to keep lane.", correct: false,
+          why: "Pinching after a stall risks another crash in speed, compounding losses." },
+        { txt: "Soak low for 30 seconds without trimming.", correct: false,
+          why: "Untrimmed soaking sheds too much height and doesn’t restore efficient flow quickly." }
+      ]
+    },
+    {
+      topic: "Numbers Game • Compass Discipline",
+      stem: "What’s the main benefit of writing the ‘square-to-course’ numbers on deck for the beat?",
+      options: [
+        { txt: "Instantly seeing if you’re on a lift or header relative to 90° offsets.", correct: true,
+          why: "Comparing current heading to precomputed 90° references removes guesswork and speeds decisions." },
+        { txt: "Reducing the need to look at the telltales.", correct: false,
+          why: "Telltales remain essential; the compass complements, not replaces, flow cues." },
+        { txt: "Optimizing downwind VMG directly.", correct: false,
+          why: "This tool is mainly for upwind lift/header recognition and geometry." },
+        { txt: "Avoiding all tacks on headers.", correct: false,
+          why: "It informs choices; you still balance lanes, fleet, and shift models." }
+      ]
+    },
+    {
+      topic: "Big Fleet • Shift Timing",
+      stem: "Why might you tack a few seconds before the full extent of a header reaches you in a big fleet?",
+      options: [
+        { txt: "To secure a clear lane before leaders tack and pin you under their exhaust.", correct: true,
+          why: "Anticipatory tacking buys leeward breathing room; waiting invites covers from boats ahead." },
+        { txt: "Because early tacks always gain distance on average.", correct: false,
+          why: "Not universally true; this is a lane/air management tactic, not a distance theorem." },
+        { txt: "To keep sailing the short tack longer.", correct: false,
+          why: "You’re actually switching to protect lane/leverage, not to extend the short tack." },
+        { txt: "So the fleet copies you, creating bad air behind.", correct: false,
+          why: "Goal is your clear air, not inducing fleet mimicry." }
+      ]
+    },
+    {
+      topic: "Downwind • Red Zone Defense",
+      stem: "A boat astern is entering your ‘red zone’ downwind (threatening your air). What’s the standard defense?",
+      options: [
+        { txt: "Head up slightly to place your wind shadow in front of their lane.", correct: true,
+          why: "Small heading change projects bad air onto them, protecting your lane and VMG." },
+        { txt: "Bear away aggressively to separate quickly.", correct: false,
+          why: "Large turns bleed VMG and may surrender tactical control." },
+        { txt: "Trim both sails harder to go ‘mode high’ downwind.", correct: false,
+          why: "Trim alone won’t reposition the shadow; angle change is needed." },
+        { txt: "Ignore them; clear air matters less downwind.", correct: false,
+          why: "Clear air is crucial downwind; ignoring threats invites rolls." }
+      ]
+    },
+    {
+      topic: "Starts • Line Sights",
+      stem: "Best practice for line sights in a big fleet?",
+      options: [
+        { txt: "Build a ‘line sight movie’ from 10 lengths back to the line.", correct: true,
+          why: "Dynamic references help judge closure rate and acceleration to nail full-speed starts." },
+        { txt: "Pick a single shoreline object and never adjust.", correct: false,
+          why: "Parallax and position changes require updating the reference as you approach." },
+        { txt: "Skip line sights if you have a GPS.", correct: false,
+          why: "GPS has latency and geometry limits at the start; visual references are sharper." },
+        { txt: "Use only the pin’s flag as your timing cue.", correct: false,
+          why: "One reference is fragile; robust cues across distances are better." }
+      ]
+    },
+    {
+      topic: "Tactics • Long Tack Rule",
+      stem: "When is it reasonable to avoid sailing the long tack even though it points more directly to the mark?",
+      options: [
+        { txt: "When deviating gets you to stronger pressure, clear air, favorable current, or a persistent/geographic shift.", correct: true,
+          why: "Real-world leverage sources can outweigh pure geometry temporarily." },
+        { txt: "Never—always sail the long tack 100% of the time.", correct: false,
+          why: "Rule of thumb, not absolute; conditions and traffic can trump it." },
+        { txt: "When you want to tack more to practice boathandling.", correct: false,
+          why: "Extra tacks add losses and seldom help in a race context." },
+        { txt: "When you’re already lifted on that tack.", correct: false,
+          why: "Being lifted on the long tack is typically a reason to stay, not bail." }
+      ]
+    },
+    {
+      topic: "Trim • Forestay/Jib",
+      stem: "Loosening the forestay (increasing sag) primarily has what effect on the jib?",
+      options: [
+        { txt: "Makes the jib fuller, improving power in lighter breeze.", correct: true,
+          why: "More sag adds depth to the entry and mid, aiding drive in low wind." },
+        { txt: "Flattens the jib and opens the slot for heavy air.", correct: false,
+          why: "That’s forestay tightening behavior; loosening does the opposite." },
+        { txt: "Tightens the leech substantially to point higher.", correct: false,
+          why: "Leech tension is mostly sheet/lead driven; sag deepens the sail, not tightens leech." },
+        { txt: "Has minimal impact on sail shape upwind.", correct: false,
+          why: "Forestay sag is a primary driver of jib depth and entry angle." }
+      ]
+    },
+    {
+      topic: "Mast Bend • Overbend Wrinkles",
+      stem: "You see overbend wrinkles running from mast to clew in the main. What’s the correct response?",
+      options: [
+        { txt: "Reduce mast bend (ease backstay/vang or add cunningham less aggressively).", correct: true,
+          why: "Wrinkles signal excessive bend flattening the main beyond its design; straighten to restore depth." },
+        { txt: "Increase mast bend to remove the wrinkles.", correct: false,
+          why: "More bend exaggerates the problem and hurts drive." },
+        { txt: "Crank outhaul only; ignore spar controls.", correct: false,
+          why: "Foot control won’t fix a luff-to-clew wrinkle pattern from spar bend." },
+        { txt: "Trim mainsheet harder to support the leech.", correct: false,
+          why: "Leech tension doesn’t solve shape mismatch caused by over-bend." }
+      ]
+    },
+    {
+      topic: "Downwind • Jibe Set",
+      stem: "You round the windward mark into a strong right shift with more pressure on the right downwind. What’s the standard call?",
+      options: [
+        { txt: "Jibe set immediately at the mark.", correct: true,
+          why: "A righty upwind flips to a starboard-favored run; jibe set positions you into the pressure/angle advantage quickly." },
+        { txt: "Delay the jibe until the fleet separates.", correct: false,
+          why: "Delaying surrenders immediate leverage to boats who jibe set into the pressure." },
+        { txt: "Sail straight while changing to a flatter spinnaker.", correct: false,
+          why: "Angle/pressure beat minor sail-shape tweaks here; geometry first." },
+        { txt: "Avoid jibing in shifts because of boathandling risk.", correct: false,
+          why: "Clean boathandling enables tactical moves; risk is outweighed by leverage when the call is clear." }
+      ]
+    },
+    {
+      topic: "Leverage • Moding on Lifts",
+      stem: "You’re on a lift but expect a header from the left soon. What’s the leverage-protecting move?",
+      options: [
+        { txt: "Foot slightly (‘rip’) to reduce lateral separation and put your boat between fleet and mark.", correct: true,
+          why: "Lowering marginally centers you, limiting how much the header helps boats on the left." },
+        { txt: "Pinch to maximize height on the lift.", correct: false,
+          why: "Max-height increases separation, giving the header more punch against you." },
+        { txt: "Tack immediately to the headed side.", correct: false,
+          why: "Preemptive tack may surrender the current lift and lane unnecessarily." },
+        { txt: "Hold exact targets and ignore the expected header.", correct: false,
+          why: "Anticipatory moding preserves tactical control against the coming shift." }
+      ]
+    },
+    {
+      topic: "Crew Comms • Top Mark ‘Play 3’",
+      stem: "Your team uses ‘Play 3’ at the windward mark. What does it call for?",
+      options: [
+        { txt: "Immediate jibe set due to big righty, better current, or more wind on the right.", correct: true,
+          why: "Play 3 = jibe set rationale: leverage on the right side downwind." },
+        { txt: "Straight set then soak low for clear air.", correct: false,
+          why: "That’s a different play; Play 3 specifically means jibe set now." },
+        { txt: "No set—delay until lane opens.", correct: false,
+          why: "Not the code for Play 3 here." },
+        { txt: "Bear away set with in-haul on the jib.", correct: false,
+          why: "In-haul reference is upwind; Play 3 targets downwind leverage." }
+      ]
+    },
+    {
+      topic: "Awareness • Take the Lane You Deserve",
+      stem: "In a crowded beat, what does ‘take the lane you deserve’ practically mean?",
+      options: [
+        { txt: "Accept a clear-air lane that preserves speed, even if it’s not the perfect VMG line.", correct: true,
+          why: "Clear air and speed compound; theoretical VMG is useless if you’re pinned/rolled." },
+        { txt: "Force weather boats to tack by luffing hard.", correct: false,
+          why: "Aggression that breaks rules or kills speed backfires in big fleets." },
+        { txt: "Sail only the lifted tack regardless of traffic.", correct: false,
+          why: "Ignoring traffic compromises lanes; balance geometry with air." },
+        { txt: "Sit in bad air temporarily to hold your side.", correct: false,
+          why: "Bad air bleeds meters every second; prioritize flow." }
+      ]
+    },
+    {
+      topic: "Trim Check • Shroud Tension",
+      stem: "Quick visual check for correct shroud tension upwind without a gauge?",
+      options: [
+        { txt: "Leeward shroud just going soft (lightly loose) when fully powered upwind.", correct: true,
+          why: "This indicates the rig is loaded appropriately for conditions; too tight or too loose both hurt shape." },
+        { txt: "Both shrouds tight at all times.", correct: false,
+          why: "Perma-tight leeward shroud suggests over-tension and restricted sag control." },
+        { txt: "Leeward shroud flopping several inches.", correct: false,
+          why: "Too loose risks pumping/sag and inconsistent headstay control." },
+        { txt: "Ignore shrouds; check only the jib leech telltales.", correct: false,
+          why: "Rig tension is foundational; telltales don’t replace it." }
+      ]
+    }
+  ];
+  // State
+  let current = 0;
+  let correct = 0;
+  let incorrect = 0;
+  let started = false;
+  let reviewMode = false;
+  const answers = new Array(QUESTIONS.length).fill(null); // store chosen index
+  const results = new Array(QUESTIONS.length).fill(null); // true/false
+  // Elements
+  const qTitle = document.getElementById('qTitle');
+  const qMeta = document.getElementById('qMeta');
+  const qTopic = document.getElementById('qTopic');
+  const optionsEl = document.getElementById('options');
+  const explainBox = document.getElementById('explainBox');
+  const scoreOk = document.getElementById('scoreOk');
+  const scoreBad = document.getElementById('scoreBad');
+  const nav = document.getElementById('nav');
+  const summary = document.getElementById('summary');
+  const btnStart = document.getElementById('btnStart');
+  const btnReset = document.getElementById('btnReset');
+  const btnReview = document.getElementById('btnReview');
+  const modePill = document.getElementById('modePill');
+  function renderNav(){
+    nav.innerHTML = '';
+    QUESTIONS.forEach((_,i)=>{
+      const b = document.createElement('button');
+      b.className = 'idx' + (i===current?' active':'') +
+                    (results[i]===true?' correct':'') +
+                    (results[i]===false?' incorrect':'');
+      b.textContent = i+1;
+      b.onclick = ()=>{ if(started){ current=i; renderQ(); } };
+      nav.appendChild(b);
+    });
+  }
+  function renderQ(){
+    const q = QUESTIONS[current];
+    qTitle.textContent = q.stem;
+    qMeta.textContent = (current+1) + ' / ' + QUESTIONS.length;
+    qTopic.textContent = q.topic;
+    optionsEl.innerHTML = '';
+    explainBox.classList.remove('show');
+    explainBox.innerHTML = '';
+    q.options.forEach((opt, idx)=>{
+      const li = document.createElement('li');
+      li.className = 'opt';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'q';
+      input.checked = answers[current] === idx;
+      const label = document.createElement('div');
+      label.innerHTML = '<strong>(' + String.fromCharCode(65+idx) + ')</strong> ' + opt.txt;
+      li.onclick = ()=>onChoose(idx);
+      li.appendChild(input);
+      li.appendChild(label);
+      optionsEl.appendChild(li);
+    });
+    // If already answered or in review mode, show feedback
+    if(answers[current] !== null || reviewMode){
+      showFeedback();
+    }
+    updateSummary();
+    renderNav();
+  }
+  function onChoose(idx){
+    if(!started) return;
+    const already = answers[current] !== null;
+    answers[current] = idx;
+    const isCorrect = QUESTIONS[current].options[idx].correct === true;
+    results[current] = isCorrect;
+    if(!already){
+      if(isCorrect) correct++; else incorrect++;
+    }
+    showFeedback();
+    updateSummary();
+    renderNav();
+    // Auto-advance after short delay in practice mode (optional UX)
+    if(!reviewMode){
+      setTimeout(()=>{
+        if(current < QUESTIONS.length-1){
+          current++;
+          renderQ();
+        }
+      }, 700);
+    }
+  }
+  function showFeedback(){
+    const q = QUESTIONS[current];
+    const chosen = answers[current];
+    // Decorate options
+    [...optionsEl.children].forEach((li, idx)=>{
+      const isC = q.options[idx].correct;
+      li.classList.add('disabled');
+      if(isC) li.classList.add('correct');
+      if(chosen !== null && idx === chosen && !isC) li.classList.add('incorrect');
+      const radio = li.querySelector('input');
+      radio.disabled = true;
+    });
+    // Build rationale panel
+    let html = '';
+    if(chosen === null){
+      html += '<div><strong>Review Mode:</strong> No answer chosen yet. Correct answer(s) highlighted in green.</div>';
+    } else {
+      const chosenOpt = q.options[chosen];
+      const icon = chosenOpt.correct ? '✅' : '❌';
+      const hdr = chosenOpt.correct ? 'Correct' : 'Incorrect';
+      html += `<div><strong>${icon} ${hdr}.</strong> ${chosenOpt.why}</div>`;
+    }
+    // Always show brief rationales for all options (advanced crew training)
+    html += '<div class="divider" style="margin:10px 0;"></div>';
+    html += '<div><strong>Rationales for all options:</strong><ul class="rationale-list">';
+    q.options.forEach((opt, i)=>{
+      const tag = opt.correct ? 'Correct' : 'Distractor';
+      html += `<li><em>(${String.fromCharCode(65+i)}) ${tag}:</em> ${opt.why}</li>`;
+    });
+    html += '</ul></div>';
+    explainBox.innerHTML = html;
+    explainBox.classList.add('show');
+  }
+  function updateSummary(){
+    scoreOk.textContent = 'Correct: ' + correct;
+    scoreBad.textContent = 'Incorrect: ' + incorrect;
+    const done = results.filter(v=>v!==null).length;
+    const pct = done ? Math.round((correct/done)*100) : 0;
+    const totalPct = Math.round((correct/QUESTIONS.length)*100);
+    const completed = done === QUESTIONS.length;
+    const summaryText = [
+      `Answered: ${done}/${QUESTIONS.length}`,
+      `Accuracy (answered): ${pct}%`,
+      `Overall (to date): ${totalPct}%`,
+      completed ? feedbackBand(totalPct) : ''
+    ].filter(Boolean).join(' • ');
+    summary.textContent = summaryText;
+  }
+  function feedbackBand(p){
+    if(p >= 90) return 'Band: Championship-ready execution—refine micro-moding and congestion reads.';
+    if(p >= 80) return 'Band: Race-ready—tighten compass discipline and lane protection.';
+    if(p >= 70) return 'Band: Solid—focus on sea-state trim and start line geometry.';
+    return 'Band: Build-up—prioritize clear air habits and shift anticipation.';
+  }
+  function startQuiz(){
+    started = true;
+    btnStart.disabled = true;
+    btnReset.disabled = false;
+    btnReview.disabled = false;
+    reviewMode = false;
+    modePill.textContent = 'Mode: Practice';
+    current = 0; correct = 0; incorrect = 0;
+    answers.fill(null); results.fill(null);
+    renderQ();
+  }
+  function resetQuiz(){
+    started = false;
+    btnStart.disabled = false;
+    btnReset.disabled = true;
+    btnReview.disabled = true;
+    reviewMode = false;
+    modePill.textContent = 'Mode: Practice';
+    current = 0; correct = 0; incorrect = 0;
+    answers.fill(null); results.fill(null);
+    qTitle.textContent = 'Question';
+    qMeta.textContent = '—';
+    qTopic.textContent = 'Topic';
+    optionsEl.innerHTML = '';
+    explainBox.classList.remove('show');
+    explainBox.innerHTML = '';
+    scoreOk.textContent = 'Correct: 0';
+    scoreBad.textContent = 'Incorrect: 0';
+    nav.innerHTML = '';
+    summary.textContent = 'Start the quiz to see progress.';
+  }
+  function toggleReview(){
+    reviewMode = !reviewMode;
+    modePill.textContent = 'Mode: ' + (reviewMode ? 'Review' : 'Practice');
+    renderQ();
+  }
+  // Wire up controls
+  btnStart.addEventListener('click', startQuiz);
+  btnReset.addEventListener('click', resetQuiz);
+  btnReview.addEventListener('click', toggleReview);
+  // Initial render (idle state)
+  resetQuiz();
+  </script>
+</body>
+</html>
